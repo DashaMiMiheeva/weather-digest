@@ -98,5 +98,19 @@ export async function getForecast(latitude, longitude, days) {
     config.precipitationUnit
   );
 
-  return fetchJson(url);
+  const data = await fetchJson(url);
+
+  if (
+    !data.daily ||
+    !Array.isArray(data.daily.time) ||
+    !Array.isArray(data.daily.temperature_2m_min) ||
+    !Array.isArray(data.daily.temperature_2m_max) ||
+    !Array.isArray(data.daily.precipitation_sum)
+  ) {
+    throw new Error(
+      'Сервер вернул некорректные данные прогноза.'
+    );
+  }
+
+  return data;
 }
