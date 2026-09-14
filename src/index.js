@@ -1,3 +1,6 @@
+import { getWeatherForCity } from './services/weatherService.js';
+import { formatWeatherReport } from './format/consoleFormatter.js';
+
 function parseArguments(args) {
   let city = null;
   let days = 3;
@@ -55,10 +58,28 @@ function parseArguments(args) {
   };
 }
 
-try {
+async function main() {
   const options = parseArguments(process.argv.slice(2));
 
-  console.log(options);
+  const results = await Promise.allSettled(
+    options.cities.map((city) =>
+      getWeatherForCity(city, options.days)
+    )
+  );
+
+  results.forEach((result, index) => {
+    const city = options.cities[index];
+
+    if (result.status === 'fulfilled') {
+      console.log(formatWeatherReport(result.value));
+    } else {
+      console.error(`Ошибка для города "${city}": ${result.reason.message}`);
+    }
+  });
+}
+
+try {
+  await main();
 } catch (error) {
   console.error(`Ошибка: ${error.message}`);
   process.exitCode = 1;
