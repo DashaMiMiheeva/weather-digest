@@ -63,9 +63,13 @@ async function main() {
 
   const results = await Promise.allSettled(
     options.cities.map((city) =>
-      getWeatherForCity(city, options.days)
+      getWeatherForCity(city, options.days, {
+        noCache: options.noCache
+      })
     )
   );
+
+  let hasErrors = false;
 
   results.forEach((result, index) => {
     const city = options.cities[index];
@@ -73,9 +77,22 @@ async function main() {
     if (result.status === 'fulfilled') {
       console.log(formatWeatherReport(result.value));
     } else {
-      console.error(`Ошибка для города "${city}": ${result.reason.message}`);
+      hasErrors = true;
+
+      const message =
+        result.reason instanceof Error
+          ? result.reason.message
+          : String(result.reason);
+
+      console.error(
+        `Ошибка для города "${city}": ${message}`
+      );
     }
   });
+
+  if (hasErrors) {
+    process.exitCode = 1;
+  }
 }
 
 try {

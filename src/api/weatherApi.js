@@ -1,17 +1,11 @@
-const GEOCODING_URL =
-  'https://geocoding-api.open-meteo.com/v1/search';
-
-const FORECAST_URL =
-  'https://api.open-meteo.com/v1/forecast';
-
-const REQUEST_TIMEOUT = 5000;
+import { config } from '../config.js';
 
 async function fetchJson(url) {
   const controller = new AbortController();
 
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, REQUEST_TIMEOUT);
+  }, config.requestTimeout);
 
   try {
     const response = await fetch(url, {
@@ -61,11 +55,11 @@ async function fetchJson(url) {
 }
 
 export async function findCity(city) {
-  const url = new URL(GEOCODING_URL);
+  const url = new URL(config.geocodingBaseUrl);
 
   url.searchParams.set('name', city);
   url.searchParams.set('count', '1');
-  url.searchParams.set('language', 'ru');
+  url.searchParams.set('language', config.language);
   url.searchParams.set('format', 'json');
 
   const data = await fetchJson(url);
@@ -85,7 +79,7 @@ export async function findCity(city) {
 }
 
 export async function getForecast(latitude, longitude, days) {
-  const url = new URL(FORECAST_URL);
+  const url = new URL(config.forecastBaseUrl);
 
   url.searchParams.set('latitude', latitude);
   url.searchParams.set('longitude', longitude);
@@ -95,6 +89,14 @@ export async function getForecast(latitude, longitude, days) {
   );
   url.searchParams.set('forecast_days', days);
   url.searchParams.set('timezone', 'auto');
+  url.searchParams.set(
+    'temperature_unit',
+    config.temperatureUnit
+  );
+  url.searchParams.set(
+    'precipitation_unit',
+    config.precipitationUnit
+  );
 
   return fetchJson(url);
 }
