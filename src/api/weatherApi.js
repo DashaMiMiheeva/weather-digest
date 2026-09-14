@@ -11,22 +11,24 @@ async function fetchJson(url) {
     const response = await fetch(url, {
       signal: controller.signal
     });
+    
+  if (!response.ok) {
+  if (response.status >= 400 && response.status < 500) {
+    throw new Error(
+      `Ошибка клиента: HTTP ${response.status} (${url})`
+    );
+  }
 
-    if (!response.ok) {
-      if (response.status >= 400 && response.status < 500) {
-        throw new Error(
-          `Ошибка клиента: HTTP ${response.status}`
-        );
-      }
+  if (response.status >= 500) {
+    throw new Error(
+      `Ошибка сервера: HTTP ${response.status} (${url})`
+    );
+  }
 
-      if (response.status >= 500) {
-        throw new Error(
-          `Ошибка сервера: HTTP ${response.status}`
-        );
-      }
-
-      throw new Error(`HTTP ошибка: ${response.status}`);
-    }
+  throw new Error(
+    `HTTP ошибка: ${response.status} (${url})`
+  );
+}
 
     return await response.json();
   } catch (error) {
